@@ -100,27 +100,37 @@ export async function tripExists(): Promise<boolean> {
 export async function fetchAppState(tripId: string): Promise<AppState> {
   const sb = requireSupabase()
 
-  const [tripRes, hotelsRes, daysRes, profilesRes] = await Promise.all([
+  const [tripRes, hotelsRes, daysRes] = await Promise.all([
     sb.from('trips').select('*').eq('id', tripId).single(),
     sb.from('hotels').select('*').eq('trip_id', tripId).order('check_in'),
     sb.from('travel_days').select('*').eq('trip_id', tripId).order('date'),
-    sb.from('profiles').select('*').eq('trip_id', tripId).order('created_at'),
   ])
 
   if (tripRes.error) throw tripRes.error
   if (hotelsRes.error) throw hotelsRes.error
   if (daysRes.error) throw daysRes.error
-  if (profilesRes.error) throw profilesRes.error
 
   const trip = tripRes.data as TripRow
-  const members: TripMember[] = (profilesRes.data as ProfileRow[])
-    .filter((p) => p.role !== 'admin')
-    .map((p) => ({
-      id: p.id,
-      name: p.display_name,
-      email: p.email,
-      role: p.role as 'editor' | 'viewer',
-    }))
+
+  // Profiles are admin-only in RLS — skip for guests (not signed in)
+  let members: TripMember[] = []
+  const { data: authData } = await sb.auth.getSession()
+  if (authData.session) {
+    const profilesRes = await sb
+      .from('profiles')
+      .select('*')
+      .eq('trip_id', tripId)
+      .order('created_at')
+    if (profilesRes.error) throw profilesRes.error
+    members = (profilesRes.data as ProfileRow[])
+      .filter((p) => p.role !== 'admin')
+      .map((p) => ({
+        id: p.id,
+        name: p.display_name,
+        email: p.email,
+        role: p.role as 'editor' | 'viewer',
+      }))
+  }
 
   return {
     tripId,

@@ -91,27 +91,32 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [needsSetup, setNeedsSetup] = useState(false)
 
   const loadTrip = useCallback(async () => {
-    if (!isSupabaseConfigured) {
-      setError('Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to your .env file.')
+    try {
+      if (!isSupabaseConfigured) {
+        setError(
+          'Supabase is not configured. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to GitHub Actions secrets (or local .env).',
+        )
+        return
+      }
+
+      setError(null)
+
+      const hasTrip = await tripExists()
+      if (!hasTrip) {
+        setNeedsSetup(true)
+        setState(null)
+        return
+      }
+
+      setNeedsSetup(false)
+      const tripId = (await getPrimaryTripId())!
+      const appState = await fetchAppState(tripId)
+      setState(appState)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Failed to load trip data from Supabase')
+    } finally {
       setLoading(false)
-      return
     }
-
-    setError(null)
-
-    const hasTrip = await tripExists()
-    if (!hasTrip) {
-      setNeedsSetup(true)
-      setState(null)
-      setLoading(false)
-      return
-    }
-
-    setNeedsSetup(false)
-    const tripId = (await getPrimaryTripId())!
-    const appState = await fetchAppState(tripId)
-    setState(appState)
-    setLoading(false)
   }, [])
 
   const syncSession = useCallback(async () => {
@@ -134,8 +139,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     void (async () => {
-      await syncSession()
-      await loadTrip()
+      try {
+        await syncSession()
+        await loadTrip()
+      } catch (e) {
+        setError(e instanceof Error ? e.message : 'Failed to start app')
+        setLoading(false)
+      }
     })()
   }, [loadTrip, syncSession])
 
