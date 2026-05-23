@@ -2,9 +2,9 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   plugins: [react(), tailwindcss()],
-  base: './',
+  base: mode === 'ghpages' ? '/vacation-planner/' : '/',
   server: {
     host: '0.0.0.0',
     port: 5173,
@@ -15,4 +15,4 @@ export default defineConfig({
     port: 4173,
     strictPort: true,
   },
-})
+}))
