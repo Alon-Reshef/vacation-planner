@@ -121,15 +121,16 @@ export async function fetchAppState(tripId: string): Promise<AppState> {
       .select('*')
       .eq('trip_id', tripId)
       .order('created_at')
-    if (profilesRes.error) throw profilesRes.error
-    members = (profilesRes.data as ProfileRow[])
-      .filter((p) => p.role !== 'admin')
-      .map((p) => ({
-        id: p.id,
-        name: p.display_name,
-        email: p.email,
-        role: p.role as 'editor' | 'viewer',
-      }))
+    if (!profilesRes.error && profilesRes.data) {
+      members = (profilesRes.data as ProfileRow[])
+        .filter((p) => p.role !== 'admin')
+        .map((p) => ({
+          id: p.id,
+          name: p.display_name,
+          email: p.email,
+          role: p.role as 'editor' | 'viewer',
+        }))
+    }
   }
 
   return {

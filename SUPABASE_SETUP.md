@@ -42,16 +42,37 @@ VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 3. Enter your name, **email**, **password**, and trip name.
 4. This creates your Supabase account, trip, and admin profile.
 
-## 6. Deploy (Vercel / Netlify)
+## 6. Deploy (Vercel / Netlify / GitHub Pages)
 
 Add the same two variables in the host’s environment settings:
 
 - `VITE_SUPABASE_URL`
 - `VITE_SUPABASE_ANON_KEY`
 
+Use the **anon public** key (starts with `eyJ...`). If you see a newer `sb_publishable_` key, check API settings for the legacy anon key as well.
+
 Redeploy after saving.
 
-## Migrating old browser data
+### GitHub Pages — required Auth URLs
+
+1. Supabase → **Authentication** → **URL Configuration**
+2. **Site URL:** `https://alon-reshef.github.io/vacation-planner/`
+3. **Redirect URLs** — add:
+   - `https://alon-reshef.github.io/vacation-planner/**`
+4. Save
+
+Without this, sign-in and data loading can fail on the public site.
+
+### GitHub Actions secrets
+
+Repo → **Settings** → **Secrets and variables** → **Actions** → add:
+
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_ANON_KEY`
+
+Then push to `main` — the workflow redeploys automatically.
+
+## 7. Migrating old browser data
 
 If you used the app before Supabase, data may still be in `localStorage`. After you sign in as **admin**, it uploads automatically if the cloud trip is empty.
 
@@ -74,3 +95,4 @@ Auth passwords are managed by **Supabase Auth**, not in your tables.
 | “No profile found” | User was not invited; admin must add them under Admin → Invite |
 | Invite fails | Turn off email confirmation; use a new email not already registered |
 | Data not syncing | Check same Supabase project keys on PC and phone builds |
+| Error on GitHub Pages | Set Auth URL Configuration; use anon key in GitHub secrets; click Clear sign-in & retry |

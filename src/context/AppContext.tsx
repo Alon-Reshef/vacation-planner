@@ -28,6 +28,7 @@ import {
   updateProfileEmail,
 } from '../lib/database'
 import { clearLegacyLocalState, legacyToAppState, loadLegacyLocalState } from '../lib/migrate'
+import { formatUnknownError } from '../lib/errors'
 import { isSupabaseConfigured, requireSupabase } from '../lib/supabase'
 
 interface AppContextValue {
@@ -113,7 +114,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const appState = await fetchAppState(tripId)
       setState(appState)
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to load trip data from Supabase')
+      setError(formatUnknownError(e, 'Failed to load trip data from Supabase'))
     } finally {
       setLoading(false)
     }
@@ -127,14 +128,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
       return
     }
     const profile = await getProfile(data.session.user.id)
-    if (profile) {
-      setSession(
-        profileToSession({
-          ...profile,
-          email: profile.email || data.session.user.email || '',
-        }),
-      )
+    if (!profile) {
+      await sb.auth.signOut()
+      setSession(null)
+      return
     }
+    setSession(
+      profileToSession({
+        ...profile,
+        email: profile.email || data.session.user.email || '',
+      }),
+    )
   }, [])
 
   useEffect(() => {
@@ -143,7 +147,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         await syncSession()
         await loadTrip()
       } catch (e) {
-        setError(e instanceof Error ? e.message : 'Failed to start app')
+        setError(formatUnknownError(e, 'Failed to start app'))
         setLoading(false)
       }
     })()
@@ -492,8 +496,40 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return (
       <div className="flex min-h-dvh items-center justify-center px-4">
         <div className="glass-card max-w-md rounded-2xl p-6 text-center">
-          <p className="text-red-700">{error}</p>
-          <p className="mt-2 text-sm text-teal-700">See SUPABASE_SETUP.md in the project folder.</p>
+          <p className="font-medium text-red-700">{error}</p>
+          <p className="mt-3 text-sm text-teal-700">
+            Add your site URL in Supabase Auth settings, verify GitHub secrets use the anon API key,
+            or clear sign-in below.
+          </p>
+          <div className="mt-4 flex flex-col gap-2">
+            <button
+              type="button"
+              className="rounded-xl bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white"
+              onClick={() => {
+                setError(null)
+                setLoading(true)
+                void loadTrip()
+              }}
+            >
+              Retry
+            </button>
+            <button
+              type="button"
+              className="rounded-xl border border-teal-200 px-4 py-2.5 text-sm font-semibold text-teal-800"
+              onClick={() => {
+                void requireSupabase()
+                  .auth.signOut()
+                  .finally(() => {
+                    setSession(null)
+                    setError(null)
+                    setLoading(true)
+                    void loadTrip()
+                  })
+              }}
+            >
+              Clear sign-in &amp; retry
+            </button>
+          </div>
         </div>
       </div>
     )
