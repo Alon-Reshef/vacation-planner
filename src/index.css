@@ -1,0 +1,83 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "DM Sans", system-ui, sans-serif;
+  --font-display: "Playfair Display", Georgia, serif;
+  --color-ocean-50: #f0fdfa;
+  --color-ocean-100: #ccfbf1;
+  --color-ocean-200: #99f6e4;
+  --color-ocean-400: #2dd4bf;
+  --color-ocean-500: #14b8a6;
+  --color-ocean-600: #0d9488;
+  --color-ocean-700: #0f766e;
+  --color-ocean-800: #115e59;
+  --color-ocean-900: #134e4a;
+  --color-sunset-400: #fb923c;
+  --color-sunset-500: #f97316;
+  --color-sand-100: #fef3c7;
+  --color-sand-200: #fde68a;
+  --color-palm-500: #22c55e;
+}
+
+html {
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  font-family: var(--font-sans);
+  background: linear-gradient(165deg, #ecfeff 0%, #f0fdfa 35%, #fffbeb 100%);
+  color: #134e4a;
+  overscroll-behavior: none;
+}
+
+#root {
+  min-height: 100dvh;
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+.safe-bottom {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+
+.safe-top {
+  padding-top: max(0.75rem, env(safe-area-inset-top));
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow:
+    0 4px 24px -4px rgba(13, 148, 136, 0.12),
+    0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.tropical-gradient {
+  background: linear-gradient(135deg, #0d9488 0%, #14b8a6 40%, #f59e0b 100%);
+}
+
+input,
+textarea,
+select {
+  font-size: 16px;
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-up {
+  animation: fade-up 0.35s ease-out forwards;
+}
