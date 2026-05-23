@@ -29,7 +29,7 @@ import {
 } from '../lib/database'
 import { clearLegacyLocalState, legacyToAppState, loadLegacyLocalState } from '../lib/migrate'
 import { formatUnknownError } from '../lib/errors'
-import { isSupabaseConfigured, requireSupabase } from '../lib/supabase'
+import { isSupabaseConfigured, requireSupabase, supabaseUrlHint } from '../lib/supabase'
 
 interface AppContextValue {
   state: AppState | null
@@ -93,6 +93,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const loadTrip = useCallback(async () => {
     try {
+      const urlHint = supabaseUrlHint()
+      if (urlHint) {
+        setError(urlHint)
+        return
+      }
+
       if (!isSupabaseConfigured) {
         setError(
           'Supabase is not configured. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to GitHub Actions secrets (or local .env).',

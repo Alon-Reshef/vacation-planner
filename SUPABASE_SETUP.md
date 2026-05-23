@@ -33,6 +33,8 @@ VITE_SUPABASE_URL=https://xxxx.supabase.co
 VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 
+**Important:** URL must be **only** `https://YOUR_PROJECT.supabase.co` — do **not** add `/rest/v1` (causes error `PGRST125`).
+
 4. Restart the dev server: `npm run dev`.
 
 ## 5. First launch — create admin
@@ -96,3 +98,4 @@ Auth passwords are managed by **Supabase Auth**, not in your tables.
 | Invite fails | Turn off email confirmation; use a new email not already registered |
 | Data not syncing | Check same Supabase project keys on PC and phone builds |
 | Error on GitHub Pages | Set Auth URL Configuration; use anon key in GitHub secrets; click Clear sign-in & retry |
+| `PGRST125` Invalid path | Fix `VITE_SUPABASE_URL` — use `https://xxx.supabase.co` only, no `/rest/v1` |
